@@ -185,8 +185,7 @@
     <div class="screen-deco bottom-left-pig"></div>
     <div class="screen-deco bottom-right-pig"></div>
 
-    <audio id="game-music" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
-    <audio id="hbd-music" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" loop></audio>
+    <audio id="background-music" src="music.mp3" loop></audio>
 
     <div id="start-screen" class="screen" style="display: flex;">
         <h1 style="color: #ff69b4; font-size: 2rem;">Piggy  Quiz</h1>
@@ -236,8 +235,7 @@
     </div>
 
     <script>
-        const gameMusic = document.getElementById('game-music');
-        const hbdMusic = document.getElementById('hbd-music');
+        const backgroundMusic = document.getElementById('background-music');
 
         // 7 English Questions for Pharmacy Students
         const quizData = [
@@ -247,7 +245,7 @@
             { q: "4. PPIs (like Omeprazole) should generally be taken when?", choices: ["Right after meals", "With meals", "15-30 mins before meals", "Right before bed"], ans: 2 },
             { q: "5. 1 standard medical teaspoon is equivalent to what volume?", choices: ["3 ml", "5 ml", "10 ml", "15 ml"], ans: 1 },
             { q: "6. Tylenol, Sara, and Tempra all contain which active ingredient?", choices: ["Ibuprofen", "Paracetamol", "Aspirin", "Naproxen"], ans: 1 },
-            { q: "7. ใครหล่อที่สุดในโลกนี้ แถมใจเย็นมาก", choices: ["ณเดชย์", "คนข้างๆคุณ", "ฉันเองง", "jaemin&jeno"], ans: 2 }
+            { q: "7. ใครหล่อที่สุดในโลกนี้ แถมใจเย็นมาก", choices: ["ณเดชย์", "คนข้างๆคุณ", "ฉันเองง", "jeno nct"], ans: 2 }
         ];
 
         let currentQuestionIndex = 0;
@@ -271,7 +269,7 @@
         }
 
         function startQuiz() {
-            gameMusic.play().catch(e => console.log("Audio play failed:", e));
+            backgroundMusic.play().catch(e => console.log("Audio play failed:", e));
             showScreen('quiz-screen');
             loadQuestion();
         }
@@ -327,11 +325,6 @@
 
         function startHbdStage() {
             showScreen('hbd-screen');
-            
-            // Switch Music
-            gameMusic.pause();
-            gameMusic.currentTime = 0;
-            hbdMusic.play().catch(e => console.log("HBD Audio play failed:", e));
 
             fireConfetti(); 
 
