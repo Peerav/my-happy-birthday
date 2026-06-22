@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Piggy Party Birthday & Pharmacy Quiz</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        /* --- General CSS: Layout and Pink Theme --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            /* [IMAGE_SOURCE] Background image */
+            background-image: url('https://as1.ftcdn.net/jpg/02/26/56/14/1000_F_226561437_diaEbDRBUqYEFSHfod33jw7vZiEfl9HF.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #333;
+            overflow: hidden; /* Prevent body scroll */
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- Global Screen Container (Responsive for Mobile) --- */
+        .screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            max-height: 85vh; /* Fit within mobile screen vertically */
+            background-color: rgba(255, 240, 245, 0.96);
+            border-radius: 25px;
+            padding: 30px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            border: 5px solid #ffb6c1;
+            animation: fadeIn 0.5s ease forwards;
+            overflow-y: auto; /* Allow scrolling inside box if content is too tall */
+            z-index: 2; /* Keep above corner decorations */
+        }
+
+        /* --- Screen Corner Decorations (Bottom Left & Right) --- */
+        .screen-deco {
+            position: fixed;
+            width: 75px; /* Size for mobile */
+            height: 75px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 5;
+            pointer-events: none; /* Make them unclickable */
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2));
+        }
+
+        /* --- Quiz UI Styles --- */
+        .quiz-header {
+            font-size: 1.1rem;
+            color: #ff69b4;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .question-box {
+            font-size: 1.15rem;
+            margin-bottom: 20px;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .choice-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .choice-btn {
+            padding: 14px 15px;
+            background-color: #fff;
+            border: 2px solid #ffb6c1;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .choice-btn:active, .choice-btn.selected {
+            background-color: #ffb6c1;
+            color: white;
+            transform: scale(0.96);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+
+        /* --- Warning Text on Start Screen --- */
+        .warning-text {
+            color: #e91e63;
+            font-weight: bold;
+            font-size: 0.95rem;
+            margin-top: 15px;
+            background: #ffe4e1;
+            padding: 12px;
+            border-radius: 10px;
+            line-height: 1.4;
+        }
+
+        /* --- Score Screen Styles --- */
+        .score-circle {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 6px solid #ff69b4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ff69b4;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(255, 105, 180, 0.3);
+        }
+
+        /* --- HBD Screen Styles --- */
+        .photo-frame {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 6px solid #fff;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            margin: 20px 0;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease-in-out; /* เพิ่มความสมูทตอนสลับรูปภาพ */
+        }
+
+        .primary-btn {
+            background: linear-gradient(145deg, #ffb6c1, #ff9a9e);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(255, 154, 158, 0.4);
+            margin-top: 15px;
+            width: 80%;
+        }
+        .primary-btn:active { transform: translateY(3px); box-shadow: 0 2px 5px rgba(255, 154, 158, 0.4); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="screen-deco bottom-left-pig"></div>
+    <div class="screen-deco bottom-right-pig"></div>
+
+    <audio id="game-music" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
+    <audio id="hbd-music" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" loop></audio>
+
+    <div id="start-screen" class="screen" style="display: flex;">
+        <h1 style="color: #ff69b4; font-size: 2rem;">Piggy  Quiz</h1>
+        <p style="margin-top: 10px; font-size: 1.1rem;">ทำสอบความรู้กันสักหน่อย!<br>ความยากระดับคนในเกรด 3.97 💊</p>
+        
+        <div class="warning-text">
+            ⚠️ Rule: ต้องได้คะแนน 5/7 
+        </div>
+
+        <button class="primary-btn" onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz-screen" class="screen">
+        <div class="quiz-header" id="quiz-progress">Question 1 / 7</div>
+        <div class="question-box" id="question-text">Loading question...</div>
+        <div class="choice-container" id="choices-container">
+            </div>
+    </div>
+
+    <div id="score-screen" class="screen">
+        <h2 style="color: #ff69b4; font-size: 1.8rem;">Your Final Score</h2>
+        <div class="score-circle" id="final-score-display">0/7</div>
+        <p id="score-message" style="font-size: 1.1rem; margin-bottom: 20px; line-height: 1.5; padding: 0 10px;"></p>
+        <button class="primary-btn" onclick="startHbdStage()">Reveal Surprise!</button>
+    </div>
+
+    <div id="hbd-screen" class="screen">
+        <h1 style="color: #ff69b4; font-size: 2.2rem;">สุขสันต์วันเกิดนะหมูน้อย</h1>
+        <div class="photo-frame">
+            <img id="hbd-photo" src="hbd1.jpg" alt="Birthday Person">
+        </div>
+        <p style="font-size: 1.2rem; font-weight: bold; color: #ff69b4; margin-bottom: 12px;">
+        ✨ โตขึ้นอีกปีแย่ว...
+    </p>
+    
+    <p style="font-size: 1rem; line-height: 1.6; color: #444; margin-bottom: 12px;">
+        ขอให้สุขภาพแข็งแรง มีความสุขมากๆ <span style="color: #e91e63; font-weight: bold;">ไม่โดนแฟนหาเรื่อง</span> 
+    </p>
+    
+    <p style="font-size: 1rem; line-height: 1.6; color: #444; margin-bottom: 15px;">
+        แล้วก็การเรียนราบรื่น ไม่เครียดเกิน ขอให้ได้เกรดดีๆ แบบนี้ต่อไป จะได้เลือกสายที่ชอบนะ 
+    </p>
+    
+    <p style="font-size: 1rem; line-height: 1.6; color: #555; border-top: 1px dashed #ffb6c1; padding-top: 12px; margin-top: 12px;">
+        ขอบใจที่โตมาอ้วนๆ แบบนี้ เราไม่เหงาเลยเพราะมีหมู 🐷💖
+    </p>
+    </div>
+
+    <script>
+        const gameMusic = document.getElementById('game-music');
+        const hbdMusic = document.getElementById('hbd-music');
+
+        // 7 English Questions for Pharmacy Students
+        const quizData = [
+            { q: "1. Paracetamol mainly reduces pain and fever, but LACKS which effect?", choices: ["Anti-inflammatory", "Anti-itch", "Antihistamine", "Antitussive"], ans: 0 },
+            { q: "2. Which organ is primarily responsible for drug metabolism?", choices: ["Kidney", "Liver", "Lungs", "Heart"], ans: 1 },
+            { q: "3. 'Non-steroidal anti-inflammatory drugs' is abbreviated as?", choices: ["DMARDs", "NSAIDs", "SSRIs", "PPIs"], ans: 1 },
+            { q: "4. PPIs (like Omeprazole) should generally be taken when?", choices: ["Right after meals", "With meals", "15-30 mins before meals", "Right before bed"], ans: 2 },
+            { q: "5. 1 standard medical teaspoon is equivalent to what volume?", choices: ["3 ml", "5 ml", "10 ml", "15 ml"], ans: 1 },
+            { q: "6. Tylenol, Sara, and Tempra all contain which active ingredient?", choices: ["Ibuprofen", "Paracetamol", "Aspirin", "Naproxen"], ans: 1 },
+            { q: "7. ใครหล่อที่สุดในโลกนี้ แถมใจเย็นมาก", choices: ["ณเดชย์", "คนข้างๆคุณ", "ฉันเองง", "คุณพ่อควง"], ans: 2 }
+        ];
+
+        let currentQuestionIndex = 0;
+        let totalScore = 0;
+
+        // --- เพิ่มส่วนจัดการรูปภาพวนลูป 4 รูปตรงนี้ ---
+        // [IMAGE_SOURCE] นำลิงก์รูปภาพทั้ง 4 รูปของคุณมาใส่แทนที่ในเครื่องหมายคำพูดด้านล่างนี้ได้เลยครับ
+        const hbdImages = [
+            "hbd1.jpg", // รูปที่ 1 (รูปเริ่มต้น)
+            "hbd2.jpg", // รูปที่ 2
+            "hbd3.jpg", // รูปที่ 3    
+            "hbd4.jpg"  // รูปที่ 4
+        ];
+        let currentImageIndex = 0;
+        let imageRotationInterval;
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+            document.getElementById(screenId).style.display = 'flex';
+            document.getElementById(screenId).scrollTop = 0;
+        }
+
+        function startQuiz() {
+            gameMusic.play().catch(e => console.log("Audio play failed:", e));
+            showScreen('quiz-screen');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const currentQ = quizData[currentQuestionIndex];
+            document.getElementById('quiz-progress').innerText = `Question ${currentQuestionIndex + 1} / ${quizData.length}`;
+            document.getElementById('question-text').innerHTML = currentQ.q;
+            
+            const choicesContainer = document.getElementById('choices-container');
+            choicesContainer.innerHTML = ''; 
+
+            currentQ.choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerText = choice;
+                btn.onclick = () => selectAnswer(btn, index);
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(btnElement, selectedIndex) {
+            const currentQ = quizData[currentQuestionIndex];
+            const allBtns = document.querySelectorAll('.choice-btn');
+            allBtns.forEach(b => b.style.pointerEvents = 'none');
+            btnElement.classList.add('selected');
+
+            if (selectedIndex === currentQ.ans) {
+                totalScore++;
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < quizData.length) {
+                    loadQuestion();
+                } else {
+                    showScoreScreen();
+                }
+            }, 400);
+        }
+
+        function showScoreScreen() {
+            showScreen('score-screen');
+            document.getElementById('final-score-display').innerText = `${totalScore}/${quizData.length}`;
+            const msgElement = document.getElementById('score-message');
+            
+            if(totalScore >= 5) {
+                msgElement.innerHTML = `ดีมาก! คุณผ่านเกณฑ์ 5/7 คะแนน<br>กดเพื่อรับรางวัลเลย 🎉`;
+            } else {
+                msgElement.innerHTML = `เสียใจด้วย! คุณยังไม่ผ่านเกณฑ์ 5/7 คะแนน<br>แต่ไม่เป็นไร เนื่องจากพรุ่งนี้เป็นวันเกิดคนอ้วน ฉันจะให้รางวัลอยู่ดี `;
+            }
+        }
+
+        function startHbdStage() {
+            showScreen('hbd-screen');
+            
+            // Switch Music
+            gameMusic.pause();
+            gameMusic.currentTime = 0;
+            hbdMusic.play().catch(e => console.log("HBD Audio play failed:", e));
+
+            fireConfetti(); 
+
+            // เริ่มฟังก์ชันวนลูปรูปภาพเมื่อเข้าสู่หน้า HBD
+            rotateHbdImages();
+        }
+
+        // ฟังก์ชันควบคุมการสลับรูปภาพวนลูป
+        function rotateHbdImages() {
+            const photoElement = document.getElementById('hbd-photo');
+            
+            // ตั้งเวลาให้เปลี่ยนรูปทุกๆ 3000 มิลลิวินาที (3 วินาที)
+            imageRotationInterval = setInterval(() => {
+                currentImageIndex = (currentImageIndex + 1) % hbdImages.length;
+                
+                // ทำเอฟเฟกต์ Fade Out สั้นๆ ก่อนเปลี่ยนรูปเพื่อความเนียนตา
+                photoElement.style.opacity = 0;
+                
+                setTimeout(() => {
+                    photoElement.src = hbdImages[currentImageIndex];
+                    photoElement.style.opacity = 1;
+                }, 300); // ดีเลย์สอดคล้องกับ transition ใน CSS
+            }, 3000);
+        }
+
+        function fireConfetti() {
+            var duration = 5 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+    </script>
+</body>
+</html>
